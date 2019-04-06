@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+import subprocess
+import argparse
+import os.path
+import sys
+
+def which(program):
+  import os
+  def is_exe(fpath):
+    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+  fpath, fname = os.path.split(program)
+  if fpath:
+    if is_exe(program):
+      return program
+  else:
+    for path in os.environ["PATH"].split(os.pathsep):
+      path = path.strip('"')
+      exe_file = os.path.join(path, program)
+      if is_exe(exe_file):
+        return exe_file
+
+  return None
+
+m2s = './multi2sim-4.2/bin/m2s'
+
+if not which(m2s):
+  print("error: m2s not found")
+  sys.exit(1)
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-r', '--report', default=None, help='Run m2s with detailed reporting. Outputting the results to FILE', metavar='FILE')
+parser.add_argument('-b', '--binary', required=True, help='The Southern Islands binary file.')
+parser.add_argument('program', help='The executable to run.')
+parser.add_argument('program_args', nargs=argparse.REMAINDER, help='The arguments to pass to the program.')
+args = parser.parse_args()
+
+if not os.path.isfile(args.binary):
+  print("error: binary %s not found" % args.binary)
+  sys.exit(1)
+
+if args.report:
+  run = [m2s, '--si-sim', 'detailed', '--si-report', args.report, args.program] + args.program_args
+else:
+  run = [m2s, args.program] + args.program_args
+
+process = subprocess.Popen(run, env={'M2S_OPENCL_BINARY' : args.binary, 'PATH' : os.environ['PATH']})
+process.wait()
