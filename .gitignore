@@ -1,4 +1,7 @@
-# Object files
+# bin/ binary directory
+bin/
+
+# OpenCL ICD BindingsObject files
 *.o
 *.ko
 *.obj
